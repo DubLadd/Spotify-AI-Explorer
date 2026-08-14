@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-zinc-950 text-zinc-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify & AI Explorer (Gemini Multi-Feature Suite)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #09090b; }
+        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+
+        /* Typography & Markdown styling */
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+            font-weight: 700;
+            margin-top: 1em;
+            margin-bottom: 0.5em;
+            color: #f4f4f5;
+        }
+        .markdown-body h1 { font-size: 1.4em; border-bottom: 1px solid #3f3f46; padding-bottom: 0.2em; }
+        .markdown-body h2 { font-size: 1.2em; border-bottom: 1px solid #27272a; padding-bottom: 0.2em; }
+        .markdown-body h3 { font-size: 1.05em; color: #2dd4bf; }
+        .markdown-body p { margin-bottom: 0.8em; line-height: 1.6; }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 0.8em; }
+        .markdown-body ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 0.8em; }
+        .markdown-body li { margin-bottom: 0.25em; }
+        .markdown-body strong { font-weight: 700; color: #10b981; }
+        .markdown-body blockquote { border-left: 3px solid #14b8a6; padding-left: 0.8em; color: #a1a1aa; font-style: italic; margin-bottom: 0.8em; }
+
+        /* Subtle pulse glow for active AI tabs */
+        .active-tab {
+            background-color: #18181b;
+            border-color: #14b8a6;
+            color: #2dd4bf;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased text-zinc-100 bg-zinc-950">
+
+    <!-- Header Navigation -->
+    <header class="border-b border-zinc-800/80 bg-zinc-900/70 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-emerald-500 via-teal-500 to-cyan-500 p-2.5 rounded-xl text-black shadow-lg shadow-emerald-500/10">
+                    <i class="fa-brands fa-spotify text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base leading-tight flex items-center gap-2">
+                        Spotify AI Explorer 
+                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/30 font-mono">Gemini 3 Suite</span>
+                    </h1>
+                    <p class="text-[11px] text-zinc-400 font-mono">BYOK • Grounded Search • Image Gen • Gemini TTS Audio</p>
+                </div>
+            </div>
+
+            <!-- Header Controls -->
+            <div id="headerActions" class="flex items-center gap-2">
+                <button onclick="openSettingsModal()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg border border-zinc-700 transition flex items-center gap-1.5">
+                    <i class="fa-solid fa-key text-amber-400"></i> API Settings
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 flex flex-col">
+
+        <!-- SCREEN 1: Setup Keys Gate -->
+        <div id="setupGateScreen" class="max-w-md mx-auto w-full my-auto bg-zinc-900/90 border border-zinc-800 rounded-2xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
+            <div class="text-center mb-6">
+                <div class="inline-flex items-center justify-center w-12 h-12 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-full mb-3">
+                    <i class="fa-solid fa-shield-halved text-xl"></i>
+                </div>
+                <h2 class="text-xl font-bold">App Credentials Required</h2>
+                <p class="text-xs text-zinc-400 mt-1">Provide your credentials below. They are saved strictly in your browser's local storage.</p>
+            </div>
+
+            <form onsubmit="handleSaveKeys(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">
+                        Spotify Client ID <span class="text-emerald-400">*</span>
+                    </label>
+                    <input type="text" id="setupSpotifyClientId" required placeholder="32-character Client ID"
+                           class="w-full bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 outline-none transition font-mono">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-zinc-300 mb-1">
+                        Gemini API Key <span class="text-teal-400">(Required for AI features)</span>
+                    </label>
+                    <input type="password" id="setupGeminiKey" placeholder="AIzaSy..."
+                           class="w-full bg-zinc-950 border border-zinc-700 focus:border-teal-500 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 outline-none transition font-mono">
+                    <p class="text-[11px] text-zinc-500 mt-1">Powers search grounding, TTS audio, playlist schemas, and artwork generation.</p>
+                </div>
+
+                <div class="p-3 bg-zinc-950 border border-zinc-800 rounded-lg text-xs text-zinc-400">
+                    <p class="font-medium text-zinc-300 mb-1"><i class="fa-solid fa-link text-emerald-400 mr-1"></i> Redirect URI for Spotify Developer Dashboard:</p>
+                    <code id="displayRedirectUri" class="block bg-zinc-900 p-1.5 rounded font-mono text-[11px] text-emerald-400 truncate select-all"></code>
+                </div>
+
+                <button type="submit" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-bold py-2.5 rounded-lg text-sm transition shadow-lg shadow-emerald-500/20 active:scale-[0.98]">
+                    Save Credentials & Enter
+                </button>
+            </form>
+        </div>
+
+        <!-- SCREEN 2: Connect Spotify Login -->
+        <div id="spotifyConnectScreen" class="hidden text-center max-w-md mx-auto my-auto py-12">
+            <div class="inline-flex p-4 bg-emerald-500/10 rounded-3xl border border-emerald-500/20 text-emerald-400 mb-4">
+                <i class="fa-brands fa-spotify text-5xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-2">Connect Your Spotify Account</h2>
+            <p class="text-sm text-zinc-400 mb-6">Authorize this app to fetch your top artists and power personalized AI music tools.</p>
+            <button onclick="redirectToSpotify()" class="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-6 py-3 rounded-full text-sm transition shadow-lg shadow-emerald-500/20 inline-flex items-center gap-2 active:scale-95">
+                <i class="fa-brands fa-spotify text-lg"></i> Connect Spotify Account
+            </button>
+        </div>
+
+        <!-- SCREEN 3: Main Dashboard with Gemini Multi-Feature Suite -->
+        <div id="dashboardScreen" class="hidden space-y-6">
+            
+            <!-- User Profile Summary Banner -->
+            <div id="profileCard" class="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-4 text-center sm:text-left">
+                    <img id="userAvatar" src="https://placehold.co/80x80/18181b/10b981?text=User" class="w-14 h-14 rounded-full object-cover border-2 border-emerald-500 shadow-lg">
+                    <div>
+                        <div class="flex items-center gap-2 justify-center sm:justify-start">
+                            <h3 id="userName" class="text-lg font-bold">Spotify Listener</h3>
+                            <span id="userPlan" class="text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full uppercase font-bold tracking-wider">PREMIUM</span>
+                        </div>
+                        <p id="userEmail" class="text-xs text-zinc-400"></p>
+                    </div>
+                </div>
+                <button onclick="logoutSpotify()" class="text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-3.5 py-2 rounded-xl transition border border-zinc-700 flex items-center gap-1.5">
+                    <i class="fa-solid fa-right-from-bracket"></i> Disconnect Spotify
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                <!-- Left Column: Top Artists Sidebar -->
+                <div class="lg:col-span-4 bg-zinc-900/50 border border-zinc-800 rounded-2xl p-4 flex flex-col h-full">
+                    <h3 class="font-bold text-sm mb-3 flex items-center justify-between border-b border-zinc-800 pb-2">
+                        <span class="flex items-center gap-2"><i class="fa-solid fa-fire text-amber-500"></i> Your Top Artists</span>
+                        <span class="text-[10px] text-zinc-500 font-mono">Spotify Live</span>
+                    </h3>
+                    <div id="topArtistsList" class="space-y-2.5 overflow-y-auto max-h-[500px] pr-1 flex-1">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Right Column: Gemini LLM Feature Workspace -->
+                <div class="lg:col-span-8 space-y-4">
+                    
+                    <!-- Navigation Tabs for Gemini AI Features -->
+                    <div class="flex overflow-x-auto gap-2 p-1 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-medium no-scrollbar">
+                        <button onclick="switchTab('tab-aura')" id="nav-tab-aura" class="tab-btn active-tab flex-1 py-2.5 px-3 rounded-lg border border-transparent hover:text-teal-400 transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Sonic Aura
+                        </button>
+                        <button onclick="switchTab('tab-playlist')" id="nav-tab-playlist" class="tab-btn flex-1 py-2.5 px-3 rounded-lg border border-transparent hover:text-teal-400 transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+                            <i class="fa-solid fa-list-check"></i> Structured Playlist
+                        </button>
+                        <button onclick="switchTab('tab-tts')" id="nav-tab-tts" class="tab-btn flex-1 py-2.5 px-3 rounded-lg border border-transparent hover:text-teal-400 transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+                            <i class="fa-solid fa-radio"></i> AI Radio DJ (TTS)
+                        </button>
+                        <button onclick="switchTab('tab-art')" id="nav-tab-art" class="tab-btn flex-1 py-2.5 px-3 rounded-lg border border-transparent hover:text-teal-400 transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+                            <i class="fa-solid fa-palette"></i> Artwork Gen
+                        </button>
+                        <button onclick="switchTab('tab-search')" id="nav-tab-search" class="tab-btn flex-1 py-2.5 px-3 rounded-lg border border-transparent hover:text-teal-400 transition flex items-center justify-center gap-1.5 whitespace-nowrap">
+                            <i class="fa-solid fa-globe"></i> Live Tour Radar
+                        </button>
+                    </div>
+
+                    <!-- FEATURE 1: Sonic Aura & Musical Personality Analysis -->
+                    <div id="tab-aura" class="tab-content bg-zinc-900/50 border border-zinc-800 rounded-2xl p-5 space-y-4">
+                        <div class="flex items-center justify-between border-b border-zinc-800/80 pb-3">
+                            <div>
+                                <h3 class="font-bold text-base text-zinc-100 flex items-center gap-2">
+                                    <i class="fa-solid fa-compact-disc text-teal-400"></i> Sonic Aura & Musical Profile
+                                </h3>
+                                <p class="text-xs text-zinc-400">Uses <code class="text-teal-400 font-mono">gemini-3-flash-preview</code> to analyze your listening style, emotional archetype, and taste radar.</p>
+                            </div>
+                            <button onclick="generateSonicAura()" id="auraBtn" class="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-black font-bold px-4 py-2 rounded-xl text-xs transition shadow-lg shadow-teal-500/10 flex items-center gap-1.5 shrink-0">
+                                <i class="fa-solid fa-sparkles"></i> Analyze Taste
+                            </button>
+                        </div>
+
+                        <div id="auraOutputBox" class="min-h-[260px] bg-zinc-950 border border-zinc-800/80 rounded-xl p-4 text-xs text-zinc-300 markdown-body">
+                            <span class="text-zinc-500 italic">Click "Analyze Taste" above to generate your sonic archetype and musical personality breakdown...</span>
+                        </div>
+                    </div>
+
+                    <!-- FEATURE 2: Structured Playlist Studio (JSON Schema) -->
+                    <div id="tab-playlist" class="tab-content hidden bg-zinc-900/50 border border-zinc-800 rounded-2xl p-5 space-y-4">
+                        <div class="border-b border-zinc-800/80 pb-3">
+                            <h3 class="font-bold text-base text-zinc-100 flex items-center gap-2">
+                                <i class="fa-solid fa-list-music text-emerald-400"></i> Structured AI Playlist Studio
+                            </h3>
+                            <p class="text-xs text-zinc-400">Generates strictly formatted JSON playlist schemas using Gemini structured response capabilities.</p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="flex gap-2">
+                                <input type="text" id="playlistPromptInput" placeholder="e.g. Rainy Sunday synthwave coffee shop study session..."
+                                       class="flex-1 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-xl p-2.5 text-xs text-zinc-100 placeholder-zinc-600 outline-none">
+                                <button onclick="generateStructuredPlaylist()" id="playlistBtn" class="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-4 py-2.5 rounded-xl text-xs transition shadow-lg shadow-emerald-500/10 flex items-center gap-1.5 shrink-0">
+                                    <i class="fa-solid fa-sliders"></i> Generate
+                                </button>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button onclick="setPlaylistPrompt('Late night dark synth drive with high energy')" class="text-[10px] bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 px-2 py-1 rounded-md transition">🚗 Night Drive</button>
+                                <button onclick="setPlaylistPrompt('Acoustic folk and indie chill for morning coffee')" class="text-[10px] bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 px-2 py-1 rounded-md transition">☕ Morning Chill</button>
+                                <button onclick="setPlaylistPrompt('Upbeat futuristic electronic gym motivation')" class="text-[10px] bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 px-2 py-1 rounded-md transition">⚡ Gym Hype</button>
+                            </div>
+                        </div>
+
+                        <div id="playlistOutputContainer" class="min-h-[240px] bg-zinc-950 border border-zinc-800/80 rounded-xl p-4 text-xs text-zinc-400 flex flex-col justify-center items-center">
+                            <span>Your generated structured playlist tracklist will appear here...</span>
+                        </div>
+                    </div>
+
+                    <!-- FEATURE 3: AI Radio DJ & Spoken Liner Notes (Gemini TTS) -->
+                    <div id="tab-tts" class="tab-content hidden bg-zinc-900/50 border border-zinc-800 rounded-2xl p-5 space-y-4">
+                        <div class="border-b border-zinc-800/80 pb-3">
+                            <h3 class="font-bold text-base text-zinc-100 flex items-center gap-2">
+                                <i class="fa-solid fa-radio text-amber-400"></i> AI Radio DJ & Spoken Liner Notes
+                            </h3>
+                            <p class="text-xs text-zinc-400">Uses <code class="text-amber-400 font-mono">gemini-2.5-flash-preview-tts</code> to convert custom DJ commentary into natural PCM-to-WAV spoken audio.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div class="sm:col-span-2 space-y-2">
+                                <label class="block text-[11px] text-zinc-400 font-medium">DJ Script Theme / Context</label>
+                                <input type="text" id="ttsScriptPrompt" value="Welcome the listener to late night radio and introduce top tracks from their favorite artists with energetic style"
+                                       class="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 rounded-xl p-2.5 text-xs text-zinc-100 outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-zinc-400 font-medium">Voice Personality</label>
+                                <select id="ttsVoiceSelect" class="w-full bg-zinc-950 border border-zinc-700 focus:border-amber-500 rounded-xl p-2.5 text-xs text-zinc-100 outline-none">
+                                    <option value="Zephyr">Zephyr (Bright)</option>
+                                    <option value="Puck">Puck (Upbeat)</option>
+                                    <option value="Kore">Kore (Firm)</option>
+                                    <option value="Fenrir">Fenrir (Excitable)</option>
+                                    <option value="Aoede">Aoede (Breezy)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button onclick="generateRadioDjAudio()" id="ttsBtn" class="bg-amber-500 hover:bg-amber-400 text-black font-bold px-5 py-2.5 rounded-xl text-xs transition shadow-lg shadow-amber-500/10 flex items-center gap-1.5">
+                                <i class="fa-solid fa-microphone"></i> Broadcast AI DJ
+                            </button>
+                        </div>
+
+                        <div id="ttsOutputBox" class="min-h-[160px] bg-zinc-950 border border-zinc-800/80 rounded-xl p-4 text-xs text-zinc-300 space-y-3 flex flex-col justify-center">
+                            <p class="text-zinc-500 italic text-center">Click "Broadcast AI DJ" to synthesize spoken audio commentary...</p>
+                        </div>
+                    </div>
+
+                    <!-- FEATURE 4: AI Playlist Artwork Generator (Imagen 4.0) -->
+                    <div id="tab-art" class="tab-content hidden bg-zinc-900/50 border border-zinc-800 rounded-2xl p-5 space-y-4">
+                        <div class="border-b border-zinc-800/80 pb-3">
+                            <h3 class="font-bold text-base text-zinc-100 flex items-center gap-2">
+                                <i class="fa-solid fa-image text-cyan-400"></i> AI Album & Playlist Cover Art
+                            </h3>
+                            <p class="text-xs text-zinc-400">Uses <code class="text-cyan-400 font-mono">imagen-4.0-generate-001</code> to generate custom artwork inspired by your top genres or prompt.</p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="flex gap-2">
+                                <input type="text" id="artPromptInput" placeholder="e.g. Futuristic holographic vinyl album cover with neon emerald glow, cybernetic music notes"
+                                       class="flex-1 bg-zinc-950 border border-zinc-700 focus:border-cyan-500 rounded-xl p-2.5 text-xs text-zinc-100 placeholder-zinc-600 outline-none">
+                                <button onclick="generateArtwork()" id="artBtn" class="bg-cyan-500 hover:bg-cyan-400 text-black font-bold px-4 py-2.5 rounded-xl text-xs transition shadow-lg shadow-cyan-500/10 flex items-center gap-1.5 shrink-0">
+                                    <i class="fa-solid fa-wand-magic"></i> Create Art
+                                </button>
+                            </div>
+                            <div class="flex flex-wrap gap-1.5">
+                                <button onclick="setArtPrompt('Abstract oil painting of a glowing neon vinyl record in a misty midnight studio')" class="text-[10px] bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 px-2 py-1 rounded-md transition">🎨 Neon Studio</button>
+                                <button onclick="setArtPrompt('Minimalist geometric 3D art representation of lo-fi chill beats and cozy coffee')" class="text-[10px] bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 px-2 py-1 rounded-md transition">☕ Minimal Lo-Fi</button>
+                            </div>
+                        </div>
+
+                        <div id="artOutputBox" class="min-h-[280px] bg-zinc-950 border border-zinc-800/80 rounded-xl p-4 flex flex-col items-center justify-center text-center">
+                            <span class="text-xs text-zinc-500 italic">Generated album cover image will display here...</span>
+                        </div>
+                    </div>
+
+                    <!-- FEATURE 5: Grounded Search Live Tour & News Radar -->
+                    <div id="tab-search" class="tab-content hidden bg-zinc-900/50 border border-zinc-800 rounded-2xl p-5 space-y-4">
+                        <div class="border-b border-zinc-800/80 pb-3">
+                            <h3 class="font-bold text-base text-zinc-100 flex items-center gap-2">
+                                <i class="fa-solid fa-radar text-emerald-400"></i> Live Tour & Music News Radar
+                            </h3>
+                            <p class="text-xs text-zinc-400">Uses <code class="text-emerald-400 font-mono">gemini-3-flash-preview</code> with Google Search Grounding to fetch live tour updates & announcements.</p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div class="flex gap-2">
+                                <input type="text" id="searchRadarInput" placeholder="e.g. What are the upcoming tour dates and latest releases for my top artists?"
+                                       class="flex-1 bg-zinc-950 border border-zinc-700 focus:border-emerald-500 rounded-xl p-2.5 text-xs text-zinc-100 placeholder-zinc-600 outline-none">
+                                <button onclick="runSearchRadar()" id="searchRadarBtn" class="bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-4 py-2.5 rounded-xl text-xs transition shadow-lg shadow-emerald-500/10 flex items-center gap-1.5 shrink-0">
+                                    <i class="fa-solid fa-magnifying-glass"></i> Search Web
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="searchOutputBox" class="min-h-[240px] bg-zinc-950 border border-zinc-800/80 rounded-xl p-4 text-xs text-zinc-300 markdown-body">
+                            <span class="text-zinc-500 italic">Grounded real-time music news and concert information with web citations will appear here...</span>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 max-w-md w-full shadow-2xl relative">
+            <button onclick="closeSettingsModal()" class="absolute top-4 right-4 text-zinc-400 hover:text-white text-sm">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-base font-bold mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-gear text-zinc-400"></i> Configuration Keys
+            </h3>
+            <div class="space-y-4 text-xs">
+                <div>
+                    <label class="block font-semibold text-zinc-300 mb-1">Spotify Client ID</label>
+                    <input type="text" id="modalSpotifyClientId" class="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 font-mono">
+                </div>
+                <div>
+                    <label class="block font-semibold text-zinc-300 mb-1">Gemini API Key</label>
+                    <input type="password" id="modalGeminiKey" class="w-full bg-zinc-950 border border-zinc-700 rounded-lg px-3 py-2 text-zinc-100 font-mono">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button onclick="updateKeysFromModal()" class="flex-1 bg-emerald-500 text-black font-bold py-2 rounded-lg hover:bg-emerald-400 transition">Save Changes</button>
+                    <button onclick="clearAllKeys()" class="bg-red-500/10 text-red-400 border border-red-500/20 px-3 py-2 rounded-lg hover:bg-red-500/20 transition">Reset All</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Box -->
+    <div id="toast" class="fixed bottom-4 right-4 hidden bg-zinc-800 text-zinc-100 border border-zinc-700 px-4 py-3 rounded-xl text-xs shadow-xl z-50 flex items-center gap-2"></div>
+
+    <!-- APPLICATION LOGIC -->
+    <script>
+        // --- GLOBALS & LOCAL STORAGE ---
+        const REDIRECT_URI = window.location.origin + window.location.pathname;
+        const SPOTIFY_SCOPES = 'user-read-private user-read-email user-top-read';
+
+        let spotifyClientId = localStorage.getItem('cfg_spotify_client_id') || '';
+        let geminiApiKey = localStorage.getItem('cfg_gemini_api_key') || '';
+        let spotifyAccessToken = localStorage.getItem('spotify_access_token') || '';
+        let topArtistsData = [];
+
+        document.getElementById('displayRedirectUri').innerText = REDIRECT_URI;
+
+        // --- NOTIFICATION HELPER ---
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerHTML = `<i class="fa-solid fa-circle-info text-teal-400"></i> ${msg}`;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3500);
+        }
+
+        // --- PKCE OAUTH HELPERS ---
+        function generateRandomString(length) {
+            const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            const values = crypto.getRandomValues(new Uint8Array(length));
+            return values.reduce((acc, x) => acc + possible[x % possible.length], "");
+        }
+
+        async function sha256(plain) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(plain);
+            return window.crypto.subtle.digest('SHA-256', data);
+        }
+
+        function base64encode(input) {
+            return btoa(String.fromCharCode(...new Uint8Array(input)))
+                .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+        }
+
+        // --- NAVIGATION TABS ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active-tab'));
+
+            document.getElementById(tabId).classList.remove('hidden');
+            const navBtn = document.getElementById(`nav-${tabId}`);
+            if (navBtn) navBtn.classList.add('active-tab');
+        }
+
+        // --- SCREEN STATE MANAGER ---
+        function renderScreen() {
+            const gate = document.getElementById('setupGateScreen');
+            const connect = document.getElementById('spotifyConnectScreen');
+            const dash = document.getElementById('dashboardScreen');
+
+            if (!spotifyClientId) {
+                gate.classList.remove('hidden');
+                connect.classList.add('hidden');
+                dash.classList.add('hidden');
+            } else if (!spotifyAccessToken) {
+                gate.classList.add('hidden');
+                connect.classList.remove('hidden');
+                dash.classList.add('hidden');
+            } else {
+                gate.classList.add('hidden');
+                connect.classList.add('hidden');
+                dash.classList.remove('hidden');
+                initDashboard();
+            }
+        }
+
+        // --- CREDENTIAL HANDLERS ---
+        function handleSaveKeys(e) {
+            e.preventDefault();
+            const spotifyId = document.getElementById('setupSpotifyClientId').value.trim();
+            const geminiKey = document.getElementById('setupGeminiKey').value.trim();
+
+            if (!spotifyId) return;
+
+            localStorage.setItem('cfg_spotify_client_id', spotifyId);
+            localStorage.setItem('cfg_gemini_api_key', geminiKey);
+
+            spotifyClientId = spotifyId;
+            geminiApiKey = geminiKey;
+
+            showToast("Credentials saved successfully!");
+            renderScreen();
+        }
+
+        function openSettingsModal() {
+            document.getElementById('modalSpotifyClientId').value = spotifyClientId;
+            document.getElementById('modalGeminiKey').value = geminiApiKey;
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        function updateKeysFromModal() {
+            spotifyClientId = document.getElementById('modalSpotifyClientId').value.trim();
+            geminiApiKey = document.getElementById('modalGeminiKey').value.trim();
+
+            localStorage.setItem('cfg_spotify_client_id', spotifyClientId);
+            localStorage.setItem('cfg_gemini_api_key', geminiApiKey);
+
+            closeSettingsModal();
+            showToast("Settings updated successfully!");
+            renderScreen();
+        }
+
+        function clearAllKeys() {
+            localStorage.clear();
+            spotifyClientId = '';
+            geminiApiKey = '';
+            spotifyAccessToken = '';
+            closeSettingsModal();
+            showToast("All local stored data cleared.");
+            renderScreen();
+        }
+
+        // --- SPOTIFY OAUTH FLOW ---
+        async function redirectToSpotify() {
+            const verifier = generateRandomString(64);
+            const hashed = await sha256(verifier);
+            const challenge = base64encode(hashed);
+
+            localStorage.setItem('code_verifier', verifier);
+
+            const params = new URLSearchParams({
+                client_id: spotifyClientId,
+                response_type: 'code',
+                redirect_uri: REDIRECT_URI,
+                scope: SPOTIFY_SCOPES,
+                code_challenge_method: 'S256',
+                code_challenge: challenge,
+            });
+
+            window.location.href = `https://accounts.spotify.com/authorize?${params.toString()}`;
+        }
+
+        async function exchangeCodeForToken(code) {
+            const verifier = localStorage.getItem('code_verifier');
+
+            try {
+                const response = await fetch('https://accounts.spotify.com/api/token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        client_id: spotifyClientId,
+                        grant_type: 'authorization_code',
+                        code: code,
+                        redirect_uri: REDIRECT_URI,
+                        code_verifier: verifier,
+                    }),
+                });
+
+                const data = await response.json();
+                if (data.access_token) {
+                    localStorage.setItem('spotify_access_token', data.access_token);
+                    spotifyAccessToken = data.access_token;
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    renderScreen();
+                } else {
+                    showToast("Failed to authenticate with Spotify.");
+                }
+            } catch (err) {
+                console.error("Token Exchange Error:", err);
+            }
+        }
+
+        function logoutSpotify() {
+            localStorage.removeItem('spotify_access_token');
+            localStorage.removeItem('code_verifier');
+            spotifyAccessToken = '';
+            renderScreen();
+        }
+
+        async function fetchSpotifyData(endpoint) {
+            const res = await fetch(`https://api.spotify.com/v1/${endpoint}`, {
+                headers: { Authorization: `Bearer ${spotifyAccessToken}` }
+            });
+
+            if (res.status === 401) {
+                logoutSpotify();
+                return null;
+            }
+            return await res.json();
+        }
+
+        async function initDashboard() {
+            // Profile
+            const profile = await fetchSpotifyData('me');
+            if (profile) {
+                document.getElementById('userName').innerText = profile.display_name || 'Spotify Listener';
+                document.getElementById('userEmail').innerText = profile.email || '';
+                document.getElementById('userPlan').innerText = profile.product || 'Standard';
+                if (profile.images?.[0]?.url) {
+                    document.getElementById('userAvatar').src = profile.images[0].url;
+                }
+            }
+
+            // Top Artists
+            const top = await fetchSpotifyData('me/top/artists?limit=10');
+            if (top && top.items) {
+                topArtistsData = top.items;
+                const container = document.getElementById('topArtistsList');
+                container.innerHTML = top.items.map(artist => `
+                    <div class="flex items-center gap-3 bg-zinc-950 p-2 rounded-xl border border-zinc-800/80 hover:border-zinc-700 transition">
+                        <img src="${artist.images?.[0]?.url || 'https://placehold.co/40x40/18181b/ffffff?text=A'}" class="w-10 h-10 rounded-lg object-cover">
+                        <div class="min-w-0 flex-1">
+                            <h4 class="font-bold text-xs truncate text-zinc-200">${artist.name}</h4>
+                            <p class="text-[10px] text-zinc-500 capitalize truncate">${artist.genres?.slice(0,2).join(', ') || 'Artist'}</p>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // --- GEMINI FETCH HELPER WITH BACKOFF ---
+        async function fetchGeminiWithBackoff(url, options, maxRetries = 3) {
+            let delay = 1000;
+            for (let i = 0; i < maxRetries; i++) {
+                try {
+                    const res = await fetch(url, options);
+                    if (res.ok) return await res.json();
+                } catch (e) {
+                    if (i === maxRetries - 1) throw e;
+                }
+                await new Promise(r => setTimeout(r, delay));
+                delay *= 2;
+            }
+            throw new Error("API call failed after retries.");
+        }
+
+        // --- MARKDOWN PARSER ---
+        function parseMarkdown(text) {
+            let html = text;
+            html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+            html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+            html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+            html = html.replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>');
+            html = html.replace(/\*(.*?)\*/gim, '<em>$1</em>');
+            html = html.replace(/^\* (.*)/gm, '<li>$1</li>');
+            html = html.replace(/^\d\. (.*)/gm, '<li>$1</li>');
+            html = html.replace(/^\> (.*$)/gim, '<blockquote>$1</blockquote>');
+            html = html.split('\n\n').map(p => {
+                if (p.trim().startsWith('<h') || p.trim().startsWith('<ul') || p.trim().startsWith('<ol') || p.trim().startsWith('<blockquote')) return p;
+                return `<p>${p}</p>`;
+            }).join('\n');
+            return html.trim();
+        }
+
+        // --- FEATURE 1: SONIC AURA & PROFILE ---
+        async function generateSonicAura() {
+            const box = document.getElementById('auraOutputBox');
+            const btn = document.getElementById('auraBtn');
+
+            const artistNames = topArtistsData.map(a => `${a.name} (${a.genres?.join(', ') || 'Genre'})`).join('; ');
+            if (!artistNames) {
+                showToast("Top artists data not loaded yet.");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Analyzing...`;
+            box.innerHTML = `<div class="flex items-center gap-2 text-teal-400 py-4"><i class="fa-solid fa-circle-notch animate-spin"></i> Consulting Gemini 3 Flash to evaluate musical aura...</div>`;
+
+            const systemPrompt = "You are a world-class music journalist and sonic psychologist. Analyze the provided list of top artists and genres to produce a deep, engaging Sonic Aura Profile.";
+            const userPrompt = `Top Artists & Genres: [${artistNames}]. Provide:\n1. Sonic Aura Archetype Name (e.g. "Midnight Synthetix", "Velvet Nostalgist")\n2. Key Emotional Vibe & Atmosphere\n3. Primary Sonic Traits (3 bullet points)\n4. Musical Personality Diagnosis.`;
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${geminiApiKey}`;
+
+            try {
+                const data = await fetchGeminiWithBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: userPrompt }] }],
+                        systemInstruction: { parts: [{ text: systemPrompt }] }
+                    })
+                });
+
+                const respText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (respText) {
+                    box.innerHTML = parseMarkdown(respText);
+                } else {
+                    box.innerText = "Received empty response from Gemini.";
+                }
+            } catch (err) {
+                console.error("Sonic Aura Error:", err);
+                box.innerHTML = `<span class="text-red-400">Error connecting to Gemini API. Please check your API key in Settings.</span>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-sparkles"></i> Analyze Taste`;
+            }
+        }
+
+        // --- FEATURE 2: STRUCTURED PLAYLIST STUDIO (JSON SCHEMA) ---
+        function setPlaylistPrompt(p) {
+            document.getElementById('playlistPromptInput').value = p;
+        }
+
+        async function generateStructuredPlaylist() {
+            const prompt = document.getElementById('playlistPromptInput').value.trim();
+            const container = document.getElementById('playlistOutputContainer');
+            const btn = document.getElementById('playlistBtn');
+
+            if (!prompt) {
+                showToast("Please enter a playlist concept or mood!");
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Crafting...`;
+            container.innerHTML = `<div class="flex items-center gap-2 text-emerald-400 py-6"><i class="fa-solid fa-circle-notch animate-spin"></i> Gemini is generating structured playlist schema...</div>`;
+
+            const artistNames = topArtistsData.map(a => a.name).join(', ');
+
+            const payload = {
+                contents: [{
+                    parts: [{ text: `Create a 5-track playlist for concept: "${prompt}". Align with listener's top artists context: [${artistNames || 'General music taste'}].` }]
+                }],
+                systemInstruction: { parts: [{ text: "You are a professional Spotify playlist curator." }] },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            playlistTitle: { type: "STRING" },
+                            description: { type: "STRING" },
+                            vibeEmoji: { type: "STRING" },
+                            tracks: {
+                                type: "ARRAY",
+                                items: {
+                                    type: "OBJECT",
+                                    properties: {
+                                        title: { type: "STRING" },
+                                        artist: { type: "STRING" },
+                                        reason: { type: "STRING" },
+                                        genre: { type: "STRING" }
+                                    },
+                                    required: ["title", "artist", "reason"]
+                                }
+                            }
+                        },
+                        required: ["playlistTitle", "description", "tracks"]
+                    }
+                }
+            };
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${geminiApiKey}`;
+
+            try {
+                const data = await fetchGeminiWithBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const jsonStr = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (jsonStr) {
+                    const parsed = JSON.parse(jsonStr);
+                    container.innerHTML = `
+                        <div class="w-full space-y-4 text-left">
+                            <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+                                <div>
+                                    <h4 class="text-base font-bold text-zinc-100">${parsed.vibeEmoji || '🎵'} ${parsed.playlistTitle}</h4>
+                                    <p class="text-xs text-zinc-400">${parsed.description}</p>
+                                </div>
+                                <span class="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded font-mono">5 Tracks</span>
+                            </div>
+
+                            <div class="space-y-2.5">
+                                ${parsed.tracks.map((t, idx) => `
+                                    <div class="bg-zinc-900 border border-zinc-800/80 p-3 rounded-xl flex items-center justify-between gap-3 hover:border-zinc-700 transition">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-zinc-500 font-mono text-xs w-4">${idx + 1}</span>
+                                            <div>
+                                                <h5 class="font-bold text-xs text-zinc-200">${t.title}</h5>
+                                                <p class="text-[11px] text-zinc-400">${t.artist} ${t.genre ? `• <span class="text-zinc-500">${t.genre}</span>` : ''}</p>
+                                                <p class="text-[10px] text-zinc-500 italic mt-0.5">${t.reason}</p>
+                                            </div>
+                                        </div>
+                                        <a href="https://open.spotify.com/search/${encodeURIComponent(t.title + ' ' + t.artist)}" target="_blank"
+                                           class="text-[10px] bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 px-2.5 py-1.5 rounded-lg border border-emerald-500/20 transition flex items-center gap-1 shrink-0">
+                                            <i class="fa-brands fa-spotify"></i> Spotify
+                                        </a>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error("Structured Playlist Error:", err);
+                container.innerHTML = `<span class="text-red-400">Error generating playlist JSON schema. Please check API key.</span>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-sliders"></i> Generate`;
+            }
+        }
+
+        // --- FEATURE 3: AI RADIO DJ (GEMINI TTS AUDIO) ---
+        function writeString(view, offset, string) {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        }
+
+        function pcmToWav(pcm16Data, sampleRate = 24000) {
+            const numChannels = 1;
+            const bytesPerSample = 2;
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = pcm16Data.length * bytesPerSample;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); // Raw PCM
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, 16, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            let offset = 44;
+            for (let i = 0; i < pcm16Data.length; i++, offset += 2) {
+                view.setInt16(offset, pcm16Data[i], true);
+            }
+
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        async function generateRadioDjAudio() {
+            const scriptPrompt = document.getElementById('ttsScriptPrompt').value.trim();
+            const voiceName = document.getElementById('ttsVoiceSelect').value;
+            const outputBox = document.getElementById('ttsOutputBox');
+            const btn = document.getElementById('ttsBtn');
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Broadcasting...`;
+            outputBox.innerHTML = `<div class="flex items-center justify-center gap-2 text-amber-400 py-6"><i class="fa-solid fa-circle-notch animate-spin"></i> Gemini 2.5 Flash TTS is synthesizing radio voice with prebuilt voice '${voiceName}'...</div>`;
+
+            const topArtistNames = topArtistsData.map(a => a.name).join(', ');
+            const ttsTextPrompt = `Say enthusiastically in a professional FM radio DJ voice: "Welcome to your personalized AI station! Today we're featuring music from your top picks including ${topArtistNames || 'your favorite artists'}. ${scriptPrompt}"`;
+
+            const payload = {
+                contents: [{
+                    parts: [{ text: ttsTextPrompt }]
+                }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        voiceConfig: {
+                            prebuiltVoiceConfig: { voiceName: voiceName }
+                        }
+                    }
+                }
+            };
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${geminiApiKey}`;
+
+            try {
+                const res = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await res.json();
+                const part = result?.candidates?.[0]?.content?.parts?.[0];
+                const base64Audio = part?.inlineData?.data;
+                const mimeType = part?.inlineData?.mimeType;
+
+                if (base64Audio && mimeType) {
+                    const sampleRateMatch = mimeType.match(/rate=(\d+)/);
+                    const sampleRate = sampleRateMatch ? parseInt(sampleRateMatch[1], 10) : 24000;
+                    
+                    const pcmBuffer = base64ToArrayBuffer(base64Audio);
+                    const pcm16 = new Int16Array(pcmBuffer);
+                    const wavBlob = pcmToWav(pcm16, sampleRate);
+                    const audioUrl = URL.createObjectURL(wavBlob);
+
+                    outputBox.innerHTML = `
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between border-b border-zinc-800 pb-2">
+                                <span class="text-xs font-bold text-amber-400 flex items-center gap-1.5"><i class="fa-solid fa-radio"></i> Radio Broadcast Ready (${voiceName})</span>
+                                <span class="text-[10px] text-zinc-500 font-mono">${sampleRate} Hz PCM16</span>
+                            </div>
+                            <p class="text-xs text-zinc-300 italic bg-zinc-900 p-2.5 rounded-lg border border-zinc-800">"${ttsTextPrompt.replace('Say enthusiastically in a professional FM radio DJ voice: ', '')}"</p>
+                            <audio controls autoplay src="${audioUrl}" class="w-full h-10 accent-amber-500 rounded-lg"></audio>
+                        </div>
+                    `;
+                } else {
+                    outputBox.innerHTML = `<span class="text-amber-400">Audio response generation failed. Ensure your Gemini API Key is valid.</span>`;
+                }
+
+            } catch (err) {
+                console.error("Gemini TTS Error:", err);
+                outputBox.innerHTML = `<span class="text-red-400">Error connecting to Gemini TTS API. Check key settings.</span>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-microphone"></i> Broadcast AI DJ`;
+            }
+        }
+
+        // --- FEATURE 4: AI ARTWORK GENERATOR (IMAGEN 4.0) ---
+        function setArtPrompt(p) {
+            document.getElementById('artPromptInput').value = p;
+        }
+
+        async function generateArtwork() {
+            let prompt = document.getElementById('artPromptInput').value.trim();
+            const outputBox = document.getElementById('artOutputBox');
+            const btn = document.getElementById('artBtn');
+
+            if (!prompt) {
+                const topGenres = topArtistsData.flatMap(a => a.genres || []).slice(0,3).join(', ');
+                prompt = `Futuristic artistic playlist cover artwork, hyperdetailed, vibrant neon colors, representing ${topGenres || 'electronic music vibes'}`;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Rendering...`;
+            outputBox.innerHTML = `<div class="flex items-center gap-2 text-cyan-400 py-8"><i class="fa-solid fa-circle-notch animate-spin"></i> Imagen 4.0 is synthesizing custom album artwork...</div>`;
+
+            const payload = {
+                instances: [{ prompt: prompt }],
+                parameters: { sampleCount: 1 }
+            };
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${geminiApiKey}`;
+
+            try {
+                const res = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await res.json();
+                if (result.predictions && result.predictions[0]?.bytesBase64Encoded) {
+                    const imgUrl = `data:image/png;base64,${result.predictions[0].bytesBase64Encoded}`;
+                    outputBox.innerHTML = `
+                        <div class="space-y-3 w-full max-w-sm mx-auto">
+                            <img src="${imgUrl}" class="w-full aspect-square object-cover rounded-xl border border-zinc-700 shadow-2xl">
+                            <p class="text-[11px] text-zinc-400 italic font-mono truncate">${prompt}</p>
+                            <a href="${imgUrl}" download="playlist_cover.png" class="inline-flex items-center gap-1.5 text-xs bg-zinc-800 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 rounded-lg border border-zinc-700 transition">
+                                <i class="fa-solid fa-download"></i> Download Cover Image
+                            </a>
+                        </div>
+                    `;
+                } else {
+                    outputBox.innerHTML = `<span class="text-amber-400">Imagen 4.0 model response did not return valid image data.</span>`;
+                }
+
+            } catch (err) {
+                console.error("Imagen Error:", err);
+                outputBox.innerHTML = `<span class="text-red-400">Error generating artwork with Imagen 4.0. Check API Key.</span>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-wand-magic"></i> Create Art`;
+            }
+        }
+
+        // --- FEATURE 5: SEARCH GROUNDED LIVE TOUR RADAR ---
+        async function runSearchRadar() {
+            const userInput = document.getElementById('searchRadarInput').value.trim();
+            const outputBox = document.getElementById('searchOutputBox');
+            const btn = document.getElementById('searchRadarBtn');
+
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Searching...`;
+            outputBox.innerHTML = `<div class="flex items-center gap-2 text-emerald-400 py-6"><i class="fa-solid fa-circle-notch animate-spin"></i> Gemini 3 Flash is fetching real-time music tour & release search results...</div>`;
+
+            const topArtistNames = topArtistsData.map(a => a.name).slice(0, 5).join(', ');
+            const promptQuery = userInput || `Find latest tour dates, concert tickets, and album release news for these artists: ${topArtistNames}`;
+
+            const systemPrompt = "You are a real-time music intelligence system. Use Google Search grounding to find authentic, up-to-date music news and tour information.";
+
+            const payload = {
+                contents: [{ parts: [{ text: promptQuery }] }],
+                tools: [{ "google_search": {} }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${geminiApiKey}`;
+
+            try {
+                const data = await fetchGeminiWithBackoff(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const candidate = data.candidates?.[0];
+                const text = candidate?.content?.parts?.[0]?.text;
+
+                // Extract citations
+                const attributions = candidate?.groundingMetadata?.groundingAttributions || [];
+                const sources = attributions.map(attr => ({
+                    uri: attr.web?.uri,
+                    title: attr.web?.title
+                })).filter(s => s.uri && s.title);
+
+                if (text) {
+                    let formattedHtml = parseMarkdown(text);
+                    if (sources.length > 0) {
+                        formattedHtml += `
+                            <div class="mt-4 pt-3 border-t border-zinc-800 text-[11px] text-zinc-400">
+                                <p class="font-bold text-zinc-300 mb-1.5"><i class="fa-solid fa-link text-emerald-400"></i> Grounded Search Sources:</p>
+                                <ul class="space-y-1">
+                                    ${sources.map(s => `
+                                        <li><a href="${s.uri}" target="_blank" class="text-teal-400 hover:underline flex items-center gap-1 truncate"><i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> ${s.title}</a></li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+                    outputBox.innerHTML = formattedHtml;
+                } else {
+                    outputBox.innerText = "No search grounded results found.";
+                }
+
+            } catch (err) {
+                console.error("Search Grounding Error:", err);
+                outputBox.innerHTML = `<span class="text-red-400">Error executing Google Search grounded query. Check API Key.</span>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i> Search Web`;
+            }
+        }
+
+        // --- APP INIT ---
+        window.onload = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const code = urlParams.get('code');
+
+            if (code && spotifyClientId) {
+                exchangeCodeForToken(code);
+            } else {
+                renderScreen();
+            }
+        };
+    </script>
+</body>
+</html>
